@@ -68,7 +68,7 @@ const NEWS = [
 const NAV_LINKS = [
   { label: "О сервере", href: "#features" },
   { label: "Новости", href: "#" },
-  { label: "Правила", href: "#" },
+  { label: "Правила", href: "/rules" },
   { label: "Донат", href: "#" },
   { label: "Форум", href: "https://whg111513.sampproject.ru/" },
 ];
