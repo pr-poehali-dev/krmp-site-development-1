@@ -65,7 +65,13 @@ const NEWS = [
   },
 ];
 
-const NAV_LINKS = ["О сервере", "Новости", "Правила", "Донат", "Форум"];
+const NAV_LINKS = [
+  { label: "О сервере", href: "#features" },
+  { label: "Новости", href: "#" },
+  { label: "Правила", href: "#" },
+  { label: "Донат", href: "#" },
+  { label: "Форум", href: "https://whg110622.sampproject.ru/index.php" },
+];
 
 export default function Index() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -103,8 +109,10 @@ export default function Index() {
           <div className="hidden md:flex items-center gap-8">
             {NAV_LINKS.map((link) => (
               <a
-                key={link}
-                href="#"
+                key={link.label}
+                href={link.href}
+                target={link.href.startsWith("http") ? "_blank" : undefined}
+                rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
                 className="text-sm transition-colors"
                 style={{
                   color: "rgba(255,255,255,0.55)",
@@ -116,7 +124,7 @@ export default function Index() {
                 onMouseEnter={(e) => (e.currentTarget.style.color = "#cc1111")}
                 onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.55)")}
               >
-                {link}
+                {link.label}
               </a>
             ))}
           </div>
@@ -149,8 +157,10 @@ export default function Index() {
           >
             {NAV_LINKS.map((link) => (
               <a
-                key={link}
-                href="#"
+                key={link.label}
+                href={link.href}
+                target={link.href.startsWith("http") ? "_blank" : undefined}
+                rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
                 className="py-2 text-sm"
                 style={{
                   color: "rgba(255,255,255,0.6)",
@@ -159,7 +169,7 @@ export default function Index() {
                   textTransform: "uppercase",
                 }}
               >
-                {link}
+                {link.label}
               </a>
             ))}
             <a
@@ -501,8 +511,10 @@ export default function Index() {
             <div className="flex flex-wrap justify-center gap-6">
               {NAV_LINKS.map((link) => (
                 <a
-                  key={link}
-                  href="#"
+                  key={link.label}
+                  href={link.href}
+                  target={link.href.startsWith("http") ? "_blank" : undefined}
+                  rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
                   style={{
                     color: "rgba(255,255,255,0.3)",
                     fontSize: "0.75rem",
@@ -514,7 +526,7 @@ export default function Index() {
                   onMouseEnter={(e) => (e.currentTarget.style.color = "#cc1111")}
                   onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}
                 >
-                  {link}
+                  {link.label}
                 </a>
               ))}
             </div>
