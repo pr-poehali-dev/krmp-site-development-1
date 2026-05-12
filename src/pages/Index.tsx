@@ -1,786 +1,530 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 
-type Priority = "critical" | "high" | "medium" | "low";
-type Status = "todo" | "in_progress" | "review" | "done";
+const BG_IMAGE = "https://cdn.poehali.dev/projects/184dbe41-69bc-440d-9fea-81f965133c73/files/bb4d8d73-1470-4d3b-a24a-e221b87ba096.jpg";
+const DOWNLOAD_LINK = "https://disk.yandex.ru/d/Feh_jdX_fTCEsA";
 
-interface Task {
-  id: number;
-  title: string;
-  description: string;
-  priority: Priority;
-  status: Status;
-  assignee: string;
-  assigneeColor: string;
-  deadline: string;
-  xp: number;
-  tags: string[];
-}
+const STATS = [
+  { value: "120 000+", label: "Игроков" },
+  { value: "8", label: "Серверов" },
+  { value: "5", label: "Лет онлайн" },
+  { value: "24/7", label: "Поддержка" },
+];
 
-interface Member {
-  name: string;
-  initials: string;
-  color: string;
-  level: number;
-  xp: number;
-  maxXp: number;
-  tasksCompleted: number;
-  achievement: string;
-}
-
-const INITIAL_TASKS: Task[] = [
+const FEATURES = [
   {
-    id: 1,
-    title: "Разработать API авторизации",
-    description: "JWT токены, refresh, logout endpoint",
-    priority: "critical",
-    status: "in_progress",
-    assignee: "Алексей",
-    assigneeColor: "#00ff87",
-    deadline: "2026-05-14",
-    xp: 150,
-    tags: ["backend", "auth"],
+    icon: "Shield",
+    title: "Уникальная экономика",
+    desc: "Реалистичная экономическая система с бизнесом, банками и криминальными структурами",
   },
   {
-    id: 2,
-    title: "Дизайн главной страницы",
-    description: "Hero секция, блоки преимуществ, футер",
-    priority: "high",
-    status: "review",
-    assignee: "Мария",
-    assigneeColor: "#a855f7",
-    deadline: "2026-05-13",
-    xp: 100,
-    tags: ["design", "ui"],
+    icon: "Users",
+    title: "Живые персонажи",
+    desc: "Создай своего уникального персонажа и проживи настоящую жизнь в мире GTA RP",
   },
   {
-    id: 3,
-    title: "Настройка CI/CD пайплайна",
-    description: "GitHub Actions, деплой на prod",
-    priority: "high",
-    status: "todo",
-    assignee: "Дмитрий",
-    assigneeColor: "#3b82f6",
-    deadline: "2026-05-16",
-    xp: 120,
-    tags: ["devops"],
+    icon: "Sword",
+    title: "Криминальный мир",
+    desc: "Банды, картели, мафия — присоединяйся или создай свою организацию",
   },
   {
-    id: 4,
-    title: "Написать unit-тесты",
-    description: "Покрытие критических компонентов 80%+",
-    priority: "medium",
-    status: "todo",
-    assignee: "Алексей",
-    assigneeColor: "#00ff87",
-    deadline: "2026-05-18",
-    xp: 80,
-    tags: ["testing"],
+    icon: "Car",
+    title: "1000+ транспорта",
+    desc: "Огромный автопарк от дешёвых тачек до эксклюзивных суперкаров",
   },
   {
-    id: 5,
-    title: "Оптимизация БД запросов",
-    description: "Индексы, кэширование, N+1 проблема",
-    priority: "medium",
-    status: "in_progress",
-    assignee: "Дмитрий",
-    assigneeColor: "#3b82f6",
-    deadline: "2026-05-15",
-    xp: 110,
-    tags: ["backend", "performance"],
+    icon: "Building2",
+    title: "Собственный бизнес",
+    desc: "Открывай магазины, клубы, заводы и зарабатывай реальные деньги",
   },
   {
-    id: 6,
-    title: "Мобильная адаптация",
-    description: "Responsive верстка всех страниц",
-    priority: "low",
-    status: "done",
-    assignee: "Мария",
-    assigneeColor: "#a855f7",
-    deadline: "2026-05-10",
-    xp: 90,
-    tags: ["frontend", "ui"],
+    icon: "Trophy",
+    title: "Ивенты и турниры",
+    desc: "Регулярные мероприятия с денежными призами и уникальными наградами",
   },
 ];
 
-const MEMBERS: Member[] = [
+const NEWS = [
   {
-    name: "Алексей",
-    initials: "АК",
-    color: "#00ff87",
-    level: 12,
-    xp: 680,
-    maxXp: 1000,
-    tasksCompleted: 34,
-    achievement: "🔥 Серийный кодер",
+    tag: "Обновление",
+    date: "10 МАЯ 2026",
+    title: "Крупное обновление 3.5 — Новый район и транспорт",
+    desc: "Добавлен новый промышленный район, 40+ новых транспортных средств и переработана система полиции.",
   },
   {
-    name: "Мария",
-    initials: "МС",
-    color: "#a855f7",
-    level: 9,
-    xp: 420,
-    maxXp: 800,
-    tasksCompleted: 21,
-    achievement: "🎨 Мастер дизайна",
+    tag: "Ивент",
+    date: "08 МАЯ 2026",
+    title: "Турнир по уличным гонкам — призовой фонд 500 000₽",
+    desc: "Регистрация открыта. Участвуй в самом масштабном гоночном событии сезона.",
   },
   {
-    name: "Дмитрий",
-    initials: "ДП",
-    color: "#3b82f6",
-    level: 11,
-    xp: 550,
-    maxXp: 900,
-    tasksCompleted: 28,
-    achievement: "⚡ Быстрый старт",
+    tag: "Патч",
+    date: "05 МАЯ 2026",
+    title: "Исправления и балансировка оружия",
+    desc: "Оптимизация серверов, исправлено 120+ багов, перебалансировано огнестрельное оружие.",
   },
 ];
 
-const COLUMNS: { id: Status; label: string; color: string; icon: string }[] = [
-  { id: "todo", label: "К выполнению", color: "#64748b", icon: "Circle" },
-  { id: "in_progress", label: "В работе", color: "#3b82f6", icon: "Zap" },
-  { id: "review", label: "На ревью", color: "#f59e0b", icon: "Eye" },
-  { id: "done", label: "Готово", color: "#00ff87", icon: "CheckCircle2" },
-];
-
-const PRIORITY_CONFIG: Record<Priority, { label: string; color: string; bg: string }> = {
-  critical: { label: "Критично", color: "#ff4444", bg: "rgba(255,68,68,0.12)" },
-  high: { label: "Высокий", color: "#f59e0b", bg: "rgba(245,158,11,0.12)" },
-  medium: { label: "Средний", color: "#3b82f6", bg: "rgba(59,130,246,0.12)" },
-  low: { label: "Низкий", color: "#64748b", bg: "rgba(100,116,139,0.12)" },
-};
-
-const daysUntil = (dateStr: string) => {
-  const diff = new Date(dateStr).getTime() - Date.now();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
-};
-
-const formatDeadline = (dateStr: string) => {
-  const days = daysUntil(dateStr);
-  if (days < 0) return { text: `${Math.abs(days)}д просрочено`, urgent: true };
-  if (days === 0) return { text: "Сегодня", urgent: true };
-  if (days === 1) return { text: "Завтра", urgent: true };
-  return { text: `${days}д`, urgent: false };
-};
+const NAV_LINKS = ["О сервере", "Новости", "Правила", "Донат", "Форум"];
 
 export default function Index() {
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
-  const [activeTab, setActiveTab] = useState<"board" | "team" | "achievements">("board");
-  const [filterPriority, setFilterPriority] = useState<Priority | "all">("all");
-  const [showAddTask, setShowAddTask] = useState(false);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [newTaskDeadline, setNewTaskDeadline] = useState("");
-  const [newTaskAssignee, setNewTaskAssignee] = useState("Алексей");
-  const [newTaskPriority, setNewTaskPriority] = useState<Priority>("medium");
-
-  const totalXP = tasks.filter((t) => t.status === "done").reduce((s, t) => s + t.xp, 0);
-  const completedCount = tasks.filter((t) => t.status === "done").length;
-  const inProgressCount = tasks.filter((t) => t.status === "in_progress").length;
-  const overdueCount = tasks.filter(
-    (t) => t.status !== "done" && daysUntil(t.deadline) < 0
-  ).length;
-
-  const filteredTasks =
-    filterPriority === "all"
-      ? tasks
-      : tasks.filter((t) => t.priority === filterPriority);
-
-  const moveTask = (taskId: number, newStatus: Status) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
-    );
-  };
-
-  const addTask = () => {
-    if (!newTaskTitle.trim()) return;
-    const member = MEMBERS.find((m) => m.name === newTaskAssignee)!;
-    const newTask: Task = {
-      id: Date.now(),
-      title: newTaskTitle,
-      description: "",
-      priority: newTaskPriority,
-      status: "todo",
-      assignee: newTaskAssignee,
-      assigneeColor: member.color,
-      deadline: newTaskDeadline || "2026-06-01",
-      xp: { critical: 150, high: 100, medium: 80, low: 50 }[newTaskPriority],
-      tags: [],
-    };
-    setTasks((prev) => [newTask, ...prev]);
-    setNewTaskTitle("");
-    setNewTaskDeadline("");
-    setShowAddTask(false);
-  };
-
-  const ACHIEVEMENTS = [
-    { icon: "🏆", title: "Первая победа", desc: "Завершить первую задачу", unlocked: completedCount >= 1, xp: 50 },
-    { icon: "⚡", title: "Молния", desc: "5 задач в работе одновременно", unlocked: inProgressCount >= 5, xp: 100 },
-    { icon: "🔥", title: "На огне", desc: "Завершить 5 задач", unlocked: completedCount >= 5, xp: 200 },
-    { icon: "💎", title: "Бриллиант", desc: "Набрать 300 XP", unlocked: totalXP >= 300, xp: 300 },
-    { icon: "🎯", title: "Снайпер", desc: "Закрыть задачу до дедлайна", unlocked: completedCount >= 1, xp: 75 },
-    { icon: "👑", title: "Король задач", desc: "Завершить 10 задач", unlocked: completedCount >= 10, xp: 500 },
-  ];
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="min-h-screen grid-bg" style={{ fontFamily: "'Golos Text', sans-serif" }}>
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 40% at 80% 10%, rgba(0,255,135,0.04) 0%, transparent 70%), radial-gradient(ellipse 50% 40% at 20% 80%, rgba(168,85,247,0.04) 0%, transparent 70%)",
-        }}
-      />
+    <div className="min-h-screen" style={{ background: "#0d0d0d", fontFamily: "'Roboto', sans-serif" }}>
 
-      {/* Header */}
-      <header
-        className="sticky top-0 z-50 border-b"
+      {/* ── NAVBAR ── */}
+      <nav
+        className="fixed top-0 left-0 right-0 z-50"
         style={{
-          background: "hsl(220 20% 8% / 0.9)",
+          background: "rgba(10,10,10,0.92)",
           backdropFilter: "blur(16px)",
-          borderColor: "hsl(var(--border))",
+          borderBottom: "1px solid rgba(200,20,20,0.15)",
         }}
       >
-        <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          {/* Logo */}
           <div className="flex items-center gap-3">
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center animate-pulse-glow"
-              style={{ background: "#00ff87" }}
+              className="w-8 h-8 rounded flex items-center justify-center font-bebas text-white text-lg animate-pulse-red"
+              style={{ background: "linear-gradient(135deg, #cc1111, #800a0a)" }}
             >
-              <span style={{ color: "#0a0f0a", fontSize: 16, fontWeight: 900 }}>Q</span>
+              BR
             </div>
             <span
-              className="text-xl font-bold tracking-wide"
-              style={{ fontFamily: "'Oswald', sans-serif", color: "hsl(var(--foreground))" }}
+              className="text-white font-bold tracking-widest text-sm"
+              style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: "0.25em" }}
             >
-              QUEST<span style={{ color: "#00ff87" }}>CRM</span>
+              BLACK<span style={{ color: "#cc1111" }}>RUSSIA</span>
             </span>
           </div>
 
-          <div className="hidden md:flex items-center gap-6">
-            <StatPill icon="Star" value={`${totalXP} XP`} color="#00ff87" label="Заработано" />
-            <StatPill icon="CheckCircle2" value={String(completedCount)} color="#3b82f6" label="Выполнено" />
-            <StatPill icon="Zap" value={String(inProgressCount)} color="#a855f7" label="В работе" />
-            {overdueCount > 0 && (
-              <StatPill icon="AlertTriangle" value={String(overdueCount)} color="#ff4444" label="Просрочено" />
-            )}
-          </div>
-
-          <button
-            onClick={() => setShowAddTask(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all hover:scale-105"
-            style={{
-              background: "#00ff87",
-              color: "#0a0f0a",
-              boxShadow: "0 0 16px rgba(0,255,135,0.4)",
-            }}
-          >
-            <Icon name="Plus" size={16} />
-            Новая задача
-          </button>
-        </div>
-      </header>
-
-      <div className="max-w-[1400px] mx-auto px-6 py-6">
-        {/* Tabs */}
-        <div className="flex gap-1 mb-6 p-1 rounded-xl w-fit" style={{ background: "hsl(var(--card))" }}>
-          {[
-            { id: "board", label: "Доска", icon: "LayoutDashboard" },
-            { id: "team", label: "Команда", icon: "Users" },
-            { id: "achievements", label: "Достижения", icon: "Trophy" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all"
-              style={
-                activeTab === tab.id
-                  ? { background: "#00ff87", color: "#0a0f0a", boxShadow: "0 0 12px rgba(0,255,135,0.3)" }
-                  : { color: "hsl(var(--muted-foreground))" }
-              }
-            >
-              <Icon name={tab.icon} size={15} />
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* BOARD TAB */}
-        {activeTab === "board" && (
-          <div className="animate-fade-in">
-            <div className="flex items-center gap-2 mb-5 flex-wrap">
-              <span className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>Приоритет:</span>
-              {(["all", "critical", "high", "medium", "low"] as const).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setFilterPriority(p)}
-                  className="px-3 py-1 rounded-full text-xs font-medium transition-all border"
-                  style={
-                    filterPriority === p
-                      ? {
-                          background: p === "all" ? "#00ff87" : PRIORITY_CONFIG[p as Priority]?.color,
-                          color: "#0a0f0a",
-                          borderColor: "transparent",
-                        }
-                      : { borderColor: "hsl(var(--border))", color: "hsl(var(--muted-foreground))" }
-                  }
-                >
-                  {p === "all" ? "Все" : PRIORITY_CONFIG[p as Priority].label}
-                </button>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-              {COLUMNS.map((col) => {
-                const colTasks = filteredTasks.filter((t) => t.status === col.id);
-                return (
-                  <div key={col.id} className="flex flex-col gap-3">
-                    <div
-                      className="flex items-center justify-between px-3 py-2 rounded-xl"
-                      style={{ background: `${col.color}18`, border: `1px solid ${col.color}30` }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Icon name={col.icon} size={15} style={{ color: col.color }} />
-                        <span className="text-sm font-semibold" style={{ color: col.color }}>
-                          {col.label}
-                        </span>
-                      </div>
-                      <span
-                        className="text-xs font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: `${col.color}25`, color: col.color }}
-                      >
-                        {colTasks.length}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-col gap-2 min-h-[80px]">
-                      {colTasks.map((task) => (
-                        <TaskCard key={task.id} task={task} onMove={moveTask} />
-                      ))}
-                      {colTasks.length === 0 && (
-                        <div
-                          className="rounded-xl p-4 text-center text-xs"
-                          style={{ border: "1px dashed hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}
-                        >
-                          Нет задач
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* TEAM TAB */}
-        {activeTab === "team" && (
-          <div className="animate-fade-in grid grid-cols-1 md:grid-cols-3 gap-5">
-            {MEMBERS.map((member, i) => (
-              <MemberCard key={member.name} member={member} rank={i + 1} />
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-8">
+            {NAV_LINKS.map((link) => (
+              <a
+                key={link}
+                href="#"
+                className="text-sm transition-colors"
+                style={{
+                  color: "rgba(255,255,255,0.55)",
+                  fontFamily: "'Oswald', sans-serif",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  fontSize: "0.8rem",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#cc1111")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.55)")}
+              >
+                {link}
+              </a>
             ))}
           </div>
-        )}
 
-        {/* ACHIEVEMENTS TAB */}
-        {activeTab === "achievements" && (
-          <div className="animate-fade-in">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {ACHIEVEMENTS.map((ach) => (
-                <div
-                  key={ach.title}
-                  className="rounded-2xl p-5 transition-all"
-                  style={{
-                    background: ach.unlocked ? "hsl(var(--card))" : "hsl(var(--muted))",
-                    border: ach.unlocked ? "1px solid rgba(0,255,135,0.3)" : "1px solid hsl(var(--border))",
-                    opacity: ach.unlocked ? 1 : 0.5,
-                    boxShadow: ach.unlocked ? "0 0 20px rgba(0,255,135,0.08)" : "none",
-                  }}
-                >
-                  <div className="flex items-start gap-4">
-                    <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
-                      style={{ background: ach.unlocked ? "rgba(0,255,135,0.15)" : "hsl(var(--border))" }}
-                    >
-                      {ach.icon}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-semibold text-sm">{ach.title}</span>
-                        <span className="text-xs font-bold" style={{ color: ach.unlocked ? "#00ff87" : "hsl(var(--muted-foreground))" }}>
-                          +{ach.xp} XP
-                        </span>
-                      </div>
-                      <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                        {ach.desc}
-                      </p>
-                      {ach.unlocked && (
-                        <div className="mt-2 text-xs font-semibold flex items-center gap-1" style={{ color: "#00ff87" }}>
-                          <Icon name="CheckCircle2" size={12} />
-                          Разблокировано
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Add Task Modal */}
-      {showAddTask && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
-          onClick={() => setShowAddTask(false)}
-        >
-          <div
-            className="w-full max-w-md rounded-2xl p-6 animate-scale-in"
-            style={{
-              background: "hsl(var(--card))",
-              border: "1px solid rgba(0,255,135,0.3)",
-              boxShadow: "0 0 40px rgba(0,255,135,0.1)",
-            }}
-            onClick={(e) => e.stopPropagation()}
+          <a
+            href={DOWNLOAD_LINK}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden md:flex btn-red items-center gap-2 px-5 py-2 rounded text-white font-bold text-sm"
+            style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: "0.1em" }}
           >
-            <div className="flex items-center justify-between mb-5">
-              <h2
-                className="text-xl font-bold"
-                style={{ fontFamily: "'Oswald', sans-serif", color: "#00ff87" }}
-              >
-                НОВЫЙ КВЕСТ
-              </h2>
-              <button onClick={() => setShowAddTask(false)} style={{ color: "hsl(var(--muted-foreground))" }}>
-                <Icon name="X" size={20} />
-              </button>
-            </div>
+            <Icon name="Play" size={14} />
+            НАЧАТЬ ИГРАТЬ
+          </a>
 
-            <div className="flex flex-col gap-4">
-              <div>
-                <label className="text-xs font-semibold mb-1.5 block" style={{ color: "hsl(var(--muted-foreground))" }}>
-                  НАЗВАНИЕ ЗАДАЧИ
-                </label>
-                <input
-                  className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                  style={{
-                    background: "hsl(var(--muted))",
-                    border: "1px solid hsl(var(--border))",
-                    color: "hsl(var(--foreground))",
-                  }}
-                  placeholder="Что нужно сделать?"
-                  value={newTaskTitle}
-                  onChange={(e) => setNewTaskTitle(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addTask()}
-                />
-              </div>
+          <button
+            className="md:hidden"
+            style={{ color: "rgba(255,255,255,0.7)" }}
+            onClick={() => setMobileOpen(!mobileOpen)}
+          >
+            <Icon name={mobileOpen ? "X" : "Menu"} size={22} />
+          </button>
+        </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold mb-1.5 block" style={{ color: "hsl(var(--muted-foreground))" }}>
-                    ДЕДЛАЙН
-                  </label>
-                  <input
-                    type="date"
-                    className="w-full rounded-xl px-3 py-3 text-sm outline-none"
-                    style={{
-                      background: "hsl(var(--muted))",
-                      border: "1px solid hsl(var(--border))",
-                      color: "hsl(var(--foreground))",
-                      colorScheme: "dark",
-                    }}
-                    value={newTaskDeadline}
-                    onChange={(e) => setNewTaskDeadline(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold mb-1.5 block" style={{ color: "hsl(var(--muted-foreground))" }}>
-                    ПРИОРИТЕТ
-                  </label>
-                  <select
-                    className="w-full rounded-xl px-3 py-3 text-sm outline-none"
-                    style={{
-                      background: "hsl(var(--muted))",
-                      border: "1px solid hsl(var(--border))",
-                      color: "hsl(var(--foreground))",
-                    }}
-                    value={newTaskPriority}
-                    onChange={(e) => setNewTaskPriority(e.target.value as Priority)}
-                  >
-                    <option value="critical">Критично</option>
-                    <option value="high">Высокий</option>
-                    <option value="medium">Средний</option>
-                    <option value="low">Низкий</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold mb-1.5 block" style={{ color: "hsl(var(--muted-foreground))" }}>
-                  ОТВЕТСТВЕННЫЙ
-                </label>
-                <div className="flex gap-2">
-                  {MEMBERS.map((m) => (
-                    <button
-                      key={m.name}
-                      onClick={() => setNewTaskAssignee(m.name)}
-                      className="flex-1 py-2 rounded-xl text-xs font-semibold transition-all"
-                      style={
-                        newTaskAssignee === m.name
-                          ? { background: m.color, color: "#0a0f0a" }
-                          : { background: "hsl(var(--muted))", border: `1px solid ${m.color}40`, color: m.color }
-                      }
-                    >
-                      {m.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                onClick={addTask}
-                className="w-full py-3 rounded-xl font-bold text-sm transition-all hover:scale-105"
+        {/* Mobile menu */}
+        {mobileOpen && (
+          <div
+            className="md:hidden px-6 pb-4 flex flex-col gap-3"
+            style={{ borderTop: "1px solid rgba(200,20,20,0.15)" }}
+          >
+            {NAV_LINKS.map((link) => (
+              <a
+                key={link}
+                href="#"
+                className="py-2 text-sm"
                 style={{
-                  background: "#00ff87",
-                  color: "#0a0f0a",
-                  boxShadow: "0 0 20px rgba(0,255,135,0.4)",
+                  color: "rgba(255,255,255,0.6)",
+                  fontFamily: "'Oswald', sans-serif",
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
                 }}
               >
-                <div className="flex items-center justify-center gap-2">
-                  <Icon name="Sword" size={16} />
-                  Создать квест
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function StatPill({ icon, value, color, label }: { icon: string; value: string; color: string; label: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <Icon name={icon} size={14} style={{ color }} />
-      <div>
-        <div className="text-sm font-bold leading-none" style={{ color }}>
-          {value}
-        </div>
-        <div className="text-xs leading-none mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>
-          {label}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TaskCard({ task, onMove }: { task: Task; onMove: (id: number, s: Status) => void }) {
-  const [showMenu, setShowMenu] = useState(false);
-  const priority = PRIORITY_CONFIG[task.priority];
-  const deadline = formatDeadline(task.deadline);
-
-  return (
-    <div
-      className="rounded-xl p-3.5 task-card-enter cursor-pointer relative group"
-      style={{
-        background: "hsl(var(--card))",
-        border: "1px solid hsl(var(--border))",
-        transition: "border-color 0.2s, box-shadow 0.2s, transform 0.15s",
-      }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.borderColor = `${priority.color}50`;
-        el.style.boxShadow = `0 0 12px ${priority.color}18`;
-        el.style.transform = "scale(1.02)";
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.borderColor = "hsl(var(--border))";
-        el.style.boxShadow = "none";
-        el.style.transform = "scale(1)";
-      }}
-    >
-      <div className="flex items-center justify-between mb-2">
-        <span
-          className="text-xs font-semibold px-2 py-0.5 rounded-full"
-          style={{ background: priority.bg, color: priority.color }}
-        >
-          {priority.label}
-        </span>
-        <div className="relative">
-          <button
-            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded"
-            style={{ color: "hsl(var(--muted-foreground))" }}
-            onClick={() => setShowMenu(!showMenu)}
-          >
-            <Icon name="MoreHorizontal" size={14} />
-          </button>
-          {showMenu && (
-            <div
-              className="absolute right-0 top-6 z-10 rounded-xl overflow-hidden w-44 animate-scale-in"
-              style={{
-                background: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-              }}
+                {link}
+              </a>
+            ))}
+            <a
+              href={DOWNLOAD_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-red text-center py-3 rounded text-white font-bold text-sm mt-2"
+              style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: "0.1em" }}
             >
-              {COLUMNS.filter((c) => c.id !== task.status).map((col) => (
-                <button
-                  key={col.id}
-                  className="w-full text-left px-3 py-2 text-xs flex items-center gap-2 transition-colors"
-                  style={{ color: "hsl(var(--foreground))" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "hsl(var(--muted))")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                  onClick={() => { onMove(task.id, col.id); setShowMenu(false); }}
-                >
-                  <Icon name={col.icon} size={12} style={{ color: col.color }} />
-                  → {col.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <h3 className="text-sm font-semibold mb-1 leading-snug">{task.title}</h3>
-      {task.description && (
-        <p className="text-xs mb-2.5 leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
-          {task.description}
-        </p>
-      )}
-
-      {task.tags.length > 0 && (
-        <div className="flex gap-1 mb-2.5 flex-wrap">
-          {task.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-xs px-1.5 py-0.5 rounded"
-              style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}
-            >
-              #{tag}
-            </span>
-          ))}
-        </div>
-      )}
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <div
-            className="w-5 h-5 rounded-full flex items-center justify-center font-bold flex-shrink-0"
-            style={{ background: `${task.assigneeColor}25`, color: task.assigneeColor, fontSize: 9 }}
-          >
-            {task.assignee.slice(0, 2)}
+              НАЧАТЬ ИГРАТЬ
+            </a>
           </div>
-          <span className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-            {task.assignee}
-          </span>
-        </div>
+        )}
+      </nav>
 
-        <div className="flex items-center gap-3">
-          <span
-            className="text-xs font-semibold flex items-center gap-0.5"
-            style={{ color: deadline.urgent ? "#ff4444" : "hsl(var(--muted-foreground))" }}
-          >
-            <Icon name="Clock" size={10} />
-            {deadline.text}
-          </span>
-          <span className="text-xs font-bold" style={{ color: "#00ff87" }}>
-            +{task.xp}xp
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MemberCard({ member, rank }: { member: Member; rank: number }) {
-  const xpPercent = Math.round((member.xp / member.maxXp) * 100);
-  const rankColors = ["#f59e0b", "hsl(var(--muted-foreground))", "#cd7f32"];
-
-  return (
-    <div
-      className="rounded-2xl p-5 animate-fade-in"
-      style={{
-        background: "hsl(var(--card))",
-        border: `1px solid ${member.color}30`,
-        boxShadow: `0 0 24px ${member.color}08`,
-        transition: "transform 0.15s",
-      }}
-      onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.transform = "scale(1.02)")}
-      onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.transform = "scale(1)")}
-    >
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold"
-            style={{ background: `${member.color}20`, color: member.color, border: `1.5px solid ${member.color}50` }}
-          >
-            {member.initials}
-          </div>
-          <div>
-            <div className="font-bold">{member.name}</div>
-            <div className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-              {member.achievement}
-            </div>
-          </div>
-        </div>
+      {/* ── HERO ── */}
+      <section
+        className="relative min-h-screen flex items-center justify-center overflow-hidden"
+        style={{ paddingTop: 64 }}
+      >
+        {/* BG */}
         <div
-          className="text-lg font-black"
-          style={{ color: rank <= 3 ? rankColors[rank - 1] : "hsl(var(--muted-foreground))", fontFamily: "'Oswald', sans-serif" }}
-        >
-          #{rank}
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <div
-            className="px-2.5 py-1 rounded-lg text-xs font-bold"
-            style={{ background: `${member.color}20`, color: member.color }}
-          >
-            LVL {member.level}
-          </div>
-          <span className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-            {member.xp} / {member.maxXp} XP
-          </span>
-        </div>
-        <span className="text-xs font-semibold" style={{ color: member.color }}>
-          {xpPercent}%
-        </span>
-      </div>
-
-      <div className="w-full h-2 rounded-full mb-4 overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-        <div
-          className="h-full rounded-full"
+          className="absolute inset-0"
           style={{
-            width: `${xpPercent}%`,
-            background: `linear-gradient(90deg, ${member.color}, ${member.color}99)`,
-            boxShadow: `0 0 8px ${member.color}60`,
-            transition: "width 0.7s ease",
+            backgroundImage: `url(${BG_IMAGE})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            filter: "brightness(0.25) saturate(0.8)",
           }}
         />
+        {/* Gradient overlays */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to bottom, rgba(13,13,13,0.4) 0%, rgba(13,13,13,0.0) 40%, rgba(13,13,13,0.7) 80%, #0d0d0d 100%)",
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 80% 60% at 50% 40%, rgba(200,20,20,0.06) 0%, transparent 70%)",
+          }}
+        />
+
+        {/* Content */}
+        <div className="relative z-10 text-center max-w-4xl mx-auto px-6">
+          <div className="animate-fade-up delay-100 inline-flex items-center gap-2 mb-6">
+            <span className="tag-red">GTA RP Сервер №1 в России</span>
+          </div>
+
+          <h1
+            className="animate-fade-up delay-200 text-white leading-none mb-2"
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: "clamp(64px, 12vw, 140px)",
+              letterSpacing: "0.05em",
+            }}
+          >
+            BLACK
+          </h1>
+          <h1
+            className="animate-fade-up delay-300 leading-none mb-8 red-glow-text animate-flicker"
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: "clamp(64px, 12vw, 140px)",
+              letterSpacing: "0.05em",
+              color: "#cc1111",
+            }}
+          >
+            RUSSIA
+          </h1>
+
+          <p
+            className="animate-fade-up delay-400 text-lg mb-10 max-w-xl mx-auto"
+            style={{ color: "rgba(255,255,255,0.55)", lineHeight: 1.7 }}
+          >
+            Живи по своим правилам. Строй империю. Стань легендой.
+            <br />
+            Самый реалистичный GTA RP сервер на платформе SAMP.
+          </p>
+
+          <div className="animate-fade-up delay-500 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a
+              href={DOWNLOAD_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-red flex items-center gap-3 px-10 py-4 rounded text-white font-bold text-lg w-full sm:w-auto justify-center"
+              style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: "0.12em" }}
+            >
+              <Icon name="Download" size={20} />
+              НАЧАТЬ ИГРАТЬ
+            </a>
+            <a
+              href="#features"
+              className="btn-outline-red flex items-center gap-2 px-8 py-4 rounded font-bold text-sm w-full sm:w-auto justify-center"
+              style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: "0.12em" }}
+            >
+              <Icon name="Info" size={16} />
+              О СЕРВЕРЕ
+            </a>
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 animate-fade-in"
+          style={{ color: "rgba(255,255,255,0.2)" }}
+        >
+          <span style={{ fontSize: "0.65rem", fontFamily: "'Oswald', sans-serif", letterSpacing: "0.2em" }}>SCROLL</span>
+          <Icon name="ChevronDown" size={16} />
+        </div>
+      </section>
+
+      {/* ── STATS TICKER ── */}
+      <div
+        style={{
+          background: "#cc1111",
+          borderTop: "1px solid rgba(255,255,255,0.1)",
+          borderBottom: "1px solid rgba(255,255,255,0.1)",
+          overflow: "hidden",
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-6 py-0">
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x"
+            style={{ divideColor: "rgba(255,255,255,0.2)" }}>
+            {STATS.map((s) => (
+              <div key={s.label} className="flex flex-col items-center py-5 px-4">
+                <span
+                  className="font-bebas text-white text-3xl leading-none"
+                  style={{ textShadow: "0 2px 8px rgba(0,0,0,0.3)" }}
+                >
+                  {s.value}
+                </span>
+                <span
+                  className="text-xs mt-0.5"
+                  style={{ color: "rgba(255,255,255,0.7)", fontFamily: "'Oswald', sans-serif", letterSpacing: "0.15em", textTransform: "uppercase" }}
+                >
+                  {s.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <div
-        className="flex items-center justify-between text-sm pt-3"
-        style={{ borderTop: "1px solid hsl(var(--border))" }}
-      >
-        <div className="text-center">
-          <div className="font-bold" style={{ color: member.color }}>
-            {member.tasksCompleted}
+      {/* ── FEATURES ── */}
+      <section id="features" className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <p className="section-label mb-3">Возможности</p>
+            <div className="divider-red w-24 mx-auto mb-6" />
+            <h2
+              className="text-white"
+              style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: "clamp(36px, 5vw, 60px)",
+                letterSpacing: "0.06em",
+              }}
+            >
+              ПОЧЕМУ BLACK RUSSIA?
+            </h2>
           </div>
-          <div className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>выполнено</div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {FEATURES.map((f, i) => (
+              <div
+                key={f.title}
+                className="card-dark rounded-lg p-7"
+                style={{ animationDelay: `${i * 0.08}s` }}
+              >
+                <div
+                  className="w-12 h-12 rounded mb-5 flex items-center justify-center"
+                  style={{ background: "rgba(200,20,20,0.12)", border: "1px solid rgba(200,20,20,0.2)" }}
+                >
+                  <Icon name={f.icon} size={22} style={{ color: "#cc1111" }} />
+                </div>
+                <h3
+                  className="text-white font-bold mb-3"
+                  style={{ fontFamily: "'Oswald', sans-serif", fontSize: "1.1rem", letterSpacing: "0.04em" }}
+                >
+                  {f.title}
+                </h3>
+                <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.88rem", lineHeight: 1.7 }}>
+                  {f.desc}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="text-center">
-          <div className="font-bold">{member.level * 50 + member.xp}</div>
-          <div className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>всего XP</div>
+      </section>
+
+      {/* ── NEWS ── */}
+      <section className="py-20 px-6" style={{ background: "rgba(255,255,255,0.015)" }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-end justify-between mb-12">
+            <div>
+              <p className="section-label mb-2">Новости</p>
+              <div className="divider-red w-16 mb-4" />
+              <h2
+                className="text-white"
+                style={{
+                  fontFamily: "'Bebas Neue', sans-serif",
+                  fontSize: "clamp(32px, 4vw, 52px)",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                ПОСЛЕДНИЕ СОБЫТИЯ
+              </h2>
+            </div>
+            <a
+              href="#"
+              className="hidden md:flex items-center gap-2 text-sm btn-outline-red px-4 py-2 rounded"
+              style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: "0.1em" }}
+            >
+              ВСЕ НОВОСТИ
+              <Icon name="ArrowRight" size={14} />
+            </a>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {NEWS.map((n) => (
+              <article
+                key={n.title}
+                className="card-dark rounded-lg overflow-hidden cursor-pointer group"
+              >
+                <div
+                  className="h-1"
+                  style={{ background: "linear-gradient(90deg, #cc1111, transparent)" }}
+                />
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="tag-red">{n.tag}</span>
+                    <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.72rem", fontFamily: "'Oswald', sans-serif", letterSpacing: "0.08em" }}>
+                      {n.date}
+                    </span>
+                  </div>
+                  <h3
+                    className="text-white font-bold mb-3 group-hover:text-red-400 transition-colors"
+                    style={{ fontFamily: "'Oswald', sans-serif", fontSize: "1rem", letterSpacing: "0.02em", lineHeight: 1.4 }}
+                  >
+                    {n.title}
+                  </h3>
+                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.83rem", lineHeight: 1.7 }}>
+                    {n.desc}
+                  </p>
+                  <div
+                    className="flex items-center gap-1 mt-5 text-xs"
+                    style={{ color: "#cc1111", fontFamily: "'Oswald', sans-serif", letterSpacing: "0.1em" }}
+                  >
+                    ЧИТАТЬ <Icon name="ArrowRight" size={12} />
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
-        <div className="text-center">
-          <div className="font-bold">{Math.round((member.tasksCompleted / member.level) * 10) / 10}</div>
-          <div className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>задач/уровень</div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section
+        className="relative py-28 px-6 overflow-hidden"
+        style={{ background: "linear-gradient(135deg, rgba(200,20,20,0.08) 0%, transparent 60%)" }}
+      >
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: `url(${BG_IMAGE})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center top",
+            filter: "brightness(0.08) saturate(0.5)",
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(to bottom, #0d0d0d 0%, transparent 30%, transparent 70%, #0d0d0d 100%)" }}
+        />
+
+        <div className="relative z-10 max-w-3xl mx-auto text-center">
+          <p className="section-label mb-4">Присоединяйся сейчас</p>
+          <div className="divider-red w-20 mx-auto mb-8" />
+          <h2
+            className="text-white mb-6"
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: "clamp(40px, 6vw, 76px)",
+              letterSpacing: "0.06em",
+              lineHeight: 1,
+            }}
+          >
+            ТВОЯ ИСТОРИЯ<br />
+            <span style={{ color: "#cc1111" }} className="red-glow-text">НАЧИНАЕТСЯ ЗДЕСЬ</span>
+          </h2>
+          <p className="mb-10" style={{ color: "rgba(255,255,255,0.45)", fontSize: "1rem", lineHeight: 1.8 }}>
+            Скачай клиент, создай персонажа и окунись в мир, где<br className="hidden md:block" />
+            каждое твоё решение меняет историю сервера
+          </p>
+          <a
+            href={DOWNLOAD_LINK}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-red inline-flex items-center gap-3 px-12 py-5 rounded text-white font-bold text-xl"
+            style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: "0.15em" }}
+          >
+            <Icon name="Download" size={22} />
+            СКАЧАТЬ И ИГРАТЬ
+          </a>
+          <p className="mt-4" style={{ color: "rgba(255,255,255,0.2)", fontSize: "0.75rem" }}>
+            Бесплатно · Быстрый запуск · Без регистрации
+          </p>
         </div>
-      </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer
+        style={{
+          background: "#090909",
+          borderTop: "1px solid rgba(200,20,20,0.12)",
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-6 py-10">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-7 h-7 rounded flex items-center justify-center font-bebas text-white text-sm"
+                style={{ background: "linear-gradient(135deg, #cc1111, #800a0a)" }}
+              >
+                BR
+              </div>
+              <span
+                className="text-white font-bold"
+                style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: "0.2em", fontSize: "0.85rem" }}
+              >
+                BLACK<span style={{ color: "#cc1111" }}>RUSSIA</span>
+              </span>
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-6">
+              {NAV_LINKS.map((link) => (
+                <a
+                  key={link}
+                  href="#"
+                  style={{
+                    color: "rgba(255,255,255,0.3)",
+                    fontSize: "0.75rem",
+                    fontFamily: "'Oswald', sans-serif",
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    transition: "color 0.2s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#cc1111")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}
+                >
+                  {link}
+                </a>
+              ))}
+            </div>
+
+            <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "0.72rem" }}>
+              © 2026 BlackRussia. Все права защищены.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
