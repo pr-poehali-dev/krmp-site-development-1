@@ -95,7 +95,7 @@ export default function Index() {
               className="text-white font-bold tracking-widest text-sm"
               style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: "0.25em" }}
             >
-              BLACK<span style={{ color: "#cc1111" }}>RUSSIA</span>
+              BRILLIANT<span style={{ color: "#cc1111" }}>RUSSIA</span>
             </span>
           </div>
 
@@ -220,7 +220,7 @@ export default function Index() {
               letterSpacing: "0.05em",
             }}
           >
-            BLACK
+            BRILLIANT
           </h1>
           <h1
             className="animate-fade-up delay-300 leading-none mb-8 red-glow-text animate-flicker"
@@ -494,7 +494,7 @@ export default function Index() {
                 className="text-white font-bold"
                 style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: "0.2em", fontSize: "0.85rem" }}
               >
-                BLACK<span style={{ color: "#cc1111" }}>RUSSIA</span>
+                BRILLIANT<span style={{ color: "#cc1111" }}>RUSSIA</span>
               </span>
             </div>
 
