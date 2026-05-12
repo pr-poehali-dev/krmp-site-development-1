@@ -331,7 +331,7 @@ export default function Index() {
                 letterSpacing: "0.06em",
               }}
             >
-              ПОЧЕМУ BLACK RUSSIA?
+              ПОЧЕМУ BRILLIANT RUSSIA?
             </h2>
           </div>
 
