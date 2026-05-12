@@ -70,7 +70,7 @@ const NAV_LINKS = [
   { label: "Новости", href: "#" },
   { label: "Правила", href: "#" },
   { label: "Донат", href: "#" },
-  { label: "Форум", href: "https://whg110622.sampproject.ru/index.php" },
+  { label: "Форум", href: "https://whg111513.sampproject.ru/" },
 ];
 
 export default function Index() {
